@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Twitch Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Material+Icons&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f14;
+      --card: #181825;
+      --primary: #9146FF;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: radial-gradient(1200px 600px at 10% -10%, #1f1147, transparent), var(--bg); color: var(--text); }
+
+    header { padding: 3rem 1.5rem; text-align: center; }
+    header h1 { font-size: clamp(2.5rem, 5vw, 4rem); margin-bottom: .5rem; display: flex; align-items: center; justify-content: center; gap: .5rem; }
+    header p { color: var(--muted); max-width: 600px; margin: 0 auto; padding-left: 25px; }
+
+    main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+    .category { margin-bottom: 3rem; }
+    .category h2 { font-size: 1.6rem; margin-bottom: 1rem; border-left: 4px solid var(--primary); padding-left: .75rem; cursor: pointer; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent), var(--card); border-radius: var(--radius); padding: 1rem; display: flex; flex-direction: column; gap: .75rem; box-shadow: 0 10px 30px rgba(0,0,0,.35); transition: transform .2s ease, box-shadow .2s ease; cursor: pointer; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,.45); }
+
+    .card-header { display: flex; align-items: center; gap: .75rem; }
+    .icon { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(255,255,255,0.05); }
+    .card h3 { margin: 0; font-size: 1.1rem; }
+    .card p { color: var(--muted); font-size: .95rem; line-height: 1.5; flex-grow: 1; }
+    .card a { text-decoration: none; background: var(--primary); color: white; display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center; padding: .5rem .75rem; border-radius: 12px; font-weight: 600; transition: filter .2s ease, transform .1s ease; }
+    .card a:hover { filter: brightness(1.1); transform: scale(1.02); }
+    .material-icons { font-size: 18px; }
+
+    footer { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: .9rem; }
+
+    /* Modal */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: var(--card); padding: 2rem; border-radius: var(--radius); max-width: 900px; width: 95%; color: var(--text); position: relative; display: flex; flex-direction: column; }
+
+    .modal-top { display: flex; align-items: center; gap: 1rem; }
+    .modal-icon { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+    .modal-title { flex-grow: 1; font-size: 1.8rem; font-weight: 700; }
+    .modal-button { background: var(--primary); color: white; padding: .5rem 1rem; border-radius: 12px; text-align: center; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; }
+
+    .modal-body { display: flex; margin-top: 1rem; gap: 1rem; }
+    .modal-left { width: 200px; font-size: .85rem; color: var(--muted); padding-top: 1rem; }
+    .modal-right { flex-grow: 1; text-align: justify; color: var(--text); }
+
+    .modal .close { position: absolute; top: .5rem; right: 1rem; cursor: pointer; font-size: 1.5rem; }
+
+    .category-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .category-content.hidden { display: none; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header h1 { font-size: 2rem; }
+      .modal-body { flex-direction: column; }
+      .modal-left { width: 100%; padding-top: .5rem; }
+      .modal-right { width: 100%; }
+      .card-header { flex-direction: row; gap: .5rem; }
+      .icon { width: 40px; height: 40px; }
+    }
+
+    @media (max-width: 480px) {
+      header p { padding-left: 0; font-size: .9rem; }
+      .card a { padding: .4rem .6rem; font-size: .9rem; }
+      .modal-title { font-size: 1.4rem; }
+      .modal-button { padding: .4rem .6rem; font-size: .9rem; }
+    }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><img src="data:image/svg+xml,%3Csvg%20width%3D%2260px%22%20height%3D%2260px%22%20viewBox%3D%220%200%2040%2040%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%3E%3Cpolygon%20points%3D%2216%205%208%2013%208%2031%2014%2031%2014%2036%2019%2031%2023%2031%2035%2019%2035%205%22%20fill%3D%22%23A970FF%22/%3E%3Cpolygon%20points%3D%2226%2025%2030%2021%2030%2010%2014%2010%2014%2025%2018%2025%2018%2029%2022%2025%22%20fill%3D%22%23FFFFFF%22/%3E%3Crect%20x%3D%2220%22%20y%3D%2214%22%20width%3D%222%22%20height%3D%226%22%20fill%3D%22%23A970FF%22/%3E%3Crect%20x%3D%2225%22%20y%3D%2214%22%20width%3D%222%22%20height%3D%226%22%20fill%3D%22%23A970FF%22/%3E%3C/g%3E%3C/svg%3E" alt="Logo"> Twitch Tools</h1>
+  <p>Una colección de herramientas útiles para streamers de Twitch: bots, overlays, analytics y más.</p>
+</header>
+
+<main id="main-content">
+</main>
+
+<footer>
+  © 2026 · Twitch Tools · Hecho para GitHub Pages
+</footer>
+
+<!-- Modal -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal">
+    <span class="close" id="modal-close">×</span>
+    <div class="modal-top">
+      <img id="modal-img" class="modal-icon" src="" alt="Icono de la herramienta" />
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-button" id="modal-open"><span class="material-icons">open_in_new</span> Abrir</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-left" id="modal-extra">Creador: Desconocido</div>
+      <div class="modal-right" id="modal-desc"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const categories = [
+    {
+      name: 'StreamElements',
+      tools: [
+        {
+          name: 'Subathon Widget',
+          desc: 'Widget oficial de StreamElements para subathons.',
+          fullDesc: 'El Subathon Widget de StreamElements permite crear eventos de subathon totalmente personalizables, con temporizador dinámico que se incrementa con subs, bits y donaciones. Ideal para maratones de streaming y eventos especiales.',
+          img: 'https://widgets.streamelements.com/element/subathon-widget/preview.png',
+          creator: 'StreamElements',
+          url: 'https://widgets.streamelements.com/element/subathon-widget'
+        }
+      ]
+    },
+    {
+      name: 'Bots & Moderación',
+      tools: [
+        {name: 'Bot de chat', icon: '', desc: 'Automatiza tareas de moderación y comandos.', fullDesc: 'Bot de chat avanzado para Twitch que permite configurar comandos personalizados, respuestas automáticas, moderación de spam, filtrado de palabras y estadísticas de chat en tiempo real.', img: 'https://via.placeholder.com/200?text=Chat+Bot', creator: 'StreamerTools Inc.', url: 'https://example.com/chat-bot'},
+        {name: 'Protector', icon: '', desc: 'Evita spam y usuarios problemáticos.', fullDesc: 'Herramienta de protección que detecta y bloquea automáticamente usuarios problemáticos, spammers y trolls, manteniendo tu chat seguro y limpio.', img: 'https://via.placeholder.com/200?text=Protector', creator: 'SafeChat Co.', url: 'https://example.com/protector'}
+      ]
+    },
+    {
+      name: 'Overlays & Diseño',
+      tools: [
+        {
+          name: 'Iros Overlay',
+          desc: 'Overlays reactivos y widgets avanzados para streams.',
+          fullDesc: 'Iros es una plataforma creada por VRSAL que ofrece overlays altamente personalizables y reactivos para Twitch. Incluye widgets avanzados, integración con eventos del stream y un enfoque moderno para mejorar la experiencia visual del directo.',
+          img: 'https://iros.vrsal.cc/og.png',
+          creator: 'VRSAL',
+          url: 'https://iros.vrsal.cc/'
+        }
+      ]
+    },
+    {
+      name: 'Compartir Archivos',
+      tools: [
+        {
+          name: 'kappa.lol',
+          desc: 'Sube y comparte imágenes de hasta 100MB temporalmente.',
+          fullDesc: 'kappa.lol es un servicio rápido y sencillo para subir imágenes de hasta 100MB y compartirlas mediante enlaces temporales. Ideal para streamers que necesitan enviar imágenes, memes o capturas de forma rápida durante directos o entre comunidades.',
+          img: 'https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://kappa.lol/&size=32',
+          creator: 'kappa.lol',
+          url: 'https://kappa.lol/'
+        }
+      ]
+    }
+  ];
+
+  const main = document.getElementById('main-content');
+
+  categories.forEach(cat => {
+    const section = document.createElement('section');
+    section.className = 'category';
+
+    const h2 = document.createElement('h2');
+    h2.textContent = cat.name;
+    section.appendChild(h2);
+
+    const grid = document.createElement('div');
+    grid.className = 'category-content';
+
+    cat.tools.forEach(tool => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="icon"><img src="${tool.img}" alt="${tool.name}" /></div>
+          <h3>${tool.name}</h3>
+        </div>
+        <p>${tool.desc}</p>
+        <a href="#"><span class="material-icons">visibility</span> Ver más</a>
+      `;
+      grid.appendChild(card);
+
+      const modalBg = document.getElementById('modal-bg');
+      const modalOpen = document.getElementById('modal-open');
+      const modalTitle = document.getElementById('modal-title');
+      const modalDesc = document.getElementById('modal-desc');
+      const modalImg = document.getElementById('modal-img');
+      const modalExtra = document.getElementById('modal-extra');
+
+      card.querySelector('a').addEventListener('click', e => {
+        e.preventDefault();
+        modalTitle.textContent = tool.name;
+        modalDesc.textContent = tool.fullDesc;
+        modalImg.src = tool.img;
+        modalExtra.textContent = 'Creador: ' + (tool.creator || 'Desconocido');
+        modalOpen.onclick = () => window.open(tool.url || '#', '_blank');
+        modalBg.style.display = 'flex';
+      });
+    });
+
+    section.appendChild(grid);
+    main.appendChild(section);
+
+    h2.addEventListener('click', () => {
+      grid.classList.toggle('hidden');
+    });
+  });
+
+  document.getElementById('modal-close').addEventListener('click', () => {
+    document.getElementById('modal-bg').style.display = 'none';
+  });
+</script>
+
+</body>
+</html>
